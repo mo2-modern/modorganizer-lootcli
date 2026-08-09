@@ -1,11 +1,5 @@
 {
   "dependencies": ["boost-locale", "tomlplusplus", "libloot"],
-  "overrides": [
-    {
-      "name": "tomlplusplus",
-      "version": "3.1.0"
-    }
-  ],
   "vcpkg-configuration": {
     "default-registry": {
       "kind": "git",
