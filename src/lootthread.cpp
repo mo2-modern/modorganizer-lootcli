@@ -545,17 +545,15 @@ std::string LOOTWorker::migrateMasterlistSource(const std::string& source)
 DWORD LOOTWorker::GetFile(const WCHAR* szUrl,      // Full URL
                           const CHAR* szFileName)  // Local file name
 {
-  BYTE szTemp[25];
   DWORD dwSize       = 0;
   DWORD dwDownloaded = 0;
   LPSTR pszOutBuffer;
   BOOL bResults      = FALSE;
   HINTERNET hSession = NULL, hConnect = NULL, hRequest = NULL;
-  FILE* pFile;
+  FILE* pFile = nullptr;
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
   URL_COMPONENTS urlComp;
-  DWORD dwUrlLen = 0;
 
   DWORD result = ERROR_SUCCESS;
 
@@ -599,11 +597,14 @@ DWORD LOOTWorker::GetFile(const WCHAR* szUrl,      // Full URL
 
     // Keep checking for data until there is nothing left.
     if (bResults) {
-      if (!(pFile = fopen(szFileName, "wb"))) {
+      if (fopen_s(&pFile, szFileName, "wb") != 0) {
         log(loot::LogLevel::debug, "File open failure");
         result = GetLastError();
       }
-      do {
+      // this was a do/while (dwSize > 0), but the !dwSize break below already ends the
+      // loop, so the only change is the guard: a failed open used to fall straight into
+      // the body and fwrite() through a null pFile
+      while (pFile != nullptr) {
         // Check for available data.
         dwSize = 0;
         if (!WinHttpQueryDataAvailable(hRequest, &dwSize)) {
@@ -643,8 +644,7 @@ DWORD LOOTWorker::GetFile(const WCHAR* szUrl,      // Full URL
         // reported that there are bits to read.
         if (!dwDownloaded)
           break;
-
-      } while (dwSize > 0);
+      }
     } else {
       log(loot::LogLevel::debug, "Response failure");
       result = GetLastError();
@@ -657,8 +657,10 @@ DWORD LOOTWorker::GetFile(const WCHAR* szUrl,      // Full URL
       WinHttpCloseHandle(hConnect);
     if (hSession)
       WinHttpCloseHandle(hSession);
-    fflush(pFile);
-    fclose(pFile);
+    if (pFile) {
+      fflush(pFile);
+      fclose(pFile);
+    }
   } else {
     log(loot::LogLevel::debug, "URL parse failure: " + converter.to_bytes(szUrl));
     result = GetLastError();
