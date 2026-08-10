@@ -21,7 +21,7 @@ set_target_properties(libloot::libloot PROPERTIES
 
 add_executable(lootcli WIN32)
 set_target_properties(lootcli PROPERTIES
-	CXX_STANDARD 20
+	CXX_STANDARD 23
 	WIN32_EXECUTABLE TRUE)
 target_sources(lootcli
 	PRIVATE
