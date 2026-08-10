@@ -77,9 +77,9 @@ private:
   std::string m_ReportOutputPath;
   std::string m_PluginListPath;
   std::string m_SortedPluginListOutputPath;
-  loot::LogLevel m_LogLevel;
-  bool m_UpdateMasterlist;
-  mutable std::recursive_mutex mutex_;
+  loot::LogLevel m_LogLevel{};
+  bool m_UpdateMasterlist{};
+  mutable std::recursive_mutex mutex_{};
   loot::GameSettings m_GameSettings;
   std::chrono::high_resolution_clock::time_point m_startTime;
 
